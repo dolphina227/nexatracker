@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Nexa Portofolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #121212, #1a1a1a); /* Darker background as requested */
+            font-family: 'Inter', sans-serif; /* Modern font */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #E0E0E0; /* Light text color */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.4; /* Improved readability */
+        }
+
+        /* Main Container for Responsiveness & Consistent Padding */
+        .app-container {
+            width: 100%;
+            max-width: 480px; /* Optimized max-width for mini-app screens */
+            padding: 0 16px; /* Consistent horizontal padding */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allow container to grow */
+        }
+
+        /* Header Section */
+        .header-section {
+            padding-top: 30px; /* Space from top */
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        .balance {
+            font-size: 3.2em; /* Large total balance */
+            font-weight: 700;
+            color: #00FFD1; /* Cyan color as accent */
+            margin-bottom: 20px;
+            word-break: break-all; /* Ensure long numbers wrap */
+        }
+
+        .address-group {
+            display: flex;
+            align-items: center;
+            background-color: #282828; /* Slightly lighter background for input group */
+            border-radius: 12px;
+            padding: 8px 12px; /* Padding inside the group */
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .address-input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent; /* Transparent background */
+            font-size: 14px;
+            color: #E0E0E0;
+            outline: none;
+            /* Style for readonly state */
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+        }
+        .address-input[readonly] {
+            background-color: #3a3a3a; /* Darker background when readonly */
+            opacity: 0.7; /* Slightly dim it */
+            cursor: not-allowed; /* Indicate it's not editable */
+        }
+
+        .address-input::placeholder {
+            color: #bbb;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            color: #A0A0A0; /* Light gray for icon */
+            transition: color 0.2s ease;
+            display: flex; /* For SVG centering */
+            align-items: center;
+            justify-content: center;
+        }
+        .copy-btn:hover {
+            color: #00FFD1; /* Cyan on hover */
+        }
+        .copy-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .track-button {
+            background-color: #00FFD1; /* Cyan */
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.1s ease;
+            color: #121212; /* Dark text for button */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            width: 100%; /* Full width button */
+        }
+
+        .track-button:hover {
+            background-color: #00E0BD;
+            transform: translateY(-2px);
+        }
+        .track-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        }
+
+        /* Tabs Section */
+        .tabs-section {
+            width: 100%;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around; /* Distribute tabs evenly */
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333; /* Subtle separator */
+            position: sticky; /* Sticky tabs */
+            top: 0;
+            background: #121212; /* Match background for sticky effect */
+            z-index: 10;
+            padding-top: 10px; /* Space above tabs */
+        }
+
+        .tab {
+            padding: 12px 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #A0A0A0; /* Gray for inactive tabs */
+            transition: color 0.3s ease, border-bottom 0.3s ease;
+            flex-grow: 1;
+            text-align: center;
+            position: relative; /* For underline */
+        }
+
+        .tab.active {
+            color: #00FFD1; /* Cyan for active tab */
+            font-weight: 700;
+        }
+        .tab.active::after { /* Underline effect */
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #00FFD1;
+            border-radius: 2px 2px 0 0;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex-grow: 1; /* Allow content to fill remaining space */
+            width: 100%;
+            overflow-y: auto; /* Enable scrolling for content */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            padding-bottom: 20px; /* Space at bottom of scrollable area */
+        }
+
+        .result {
+            text-align: center;
+            font-size: 14px;
+            color: #999;
+            min-height: 40px;
+            margin-bottom: 15px;
+        }
+
+        /* Token List Styling (Card-style as requested) */
+        .token-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Spacing between token cards */
+        }
+
+        .token-item {
+            background-color: #1E1E1E; /* Card background */
+            border-radius: 12px; /* Rounded corners */
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* Soft shadow */
+            display: flex;
+            align-items: center; /* Align icon and text vertically */
+            gap: 15px; /* Gap between icon and text content */
+            cursor: pointer; /* Hint for clickability */
+            transition: background-color 0.2s ease;
+        }
+        .token-item:hover {
+            background-color: #282828; /* Slightly darker on hover */
+        }
+
+        .token-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%; /* Circular icon */
+            background-color: #333; /* Default icon background */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            color: #00FFD1; /* Icon text color */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .token-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .token-info {
+            flex-grow: 1; /* Allows info to take available space */
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .token-info .name-symbol {
+            font-size: 16px;
+            font-weight: 600;
+            color: #FFFFFF; /* White for token name */
+            margin-bottom: 2px;
+        }
+        .token-info .name-symbol span {
+            font-weight: 400;
+            color: #A0A0A0; /* Gray for symbol */
+            font-size: 14px;
+        }
+
+        .token-info .price-change {
+            font-size: 14px;
+            color: #A0A0A0;
+            display: flex;
+            align-items: center;
+        }
+        .token-info .price-change .price {
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        .token-info .price-change .change {
+            font-weight: 600;
+            /* Color will be set by JS based on value */
+        }
+        .change.positive { color: #28a745; } /* Green for positive change */
+        .change.negative { color: #dc3545; } /* Red for negative change */
+
+
+        .token-amounts {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .token-amounts .amount {
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 2px;
+        }
+        .token-amounts .total-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #00FFD1; /* Cyan for total value */
+        }
+
+        /* NFT Grid Styling */
+        .nft-grid {
+            display: grid; /* Use CSS Grid for better control */
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Responsive grid */
+            gap: 12px; /* Spacing between NFTs */
+            padding-top: 10px; /* Space from result text */
+            width: 100%;
+            box-sizing: border-box;
+            justify-items: center; /* Center items in their grid cells */
+        }
+
+        .nft-item {
+            background-color: #1E1E1E;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 100%; /* Fill grid cell */
+        }
+
+        .nft-item img {
+            width: 100%;
+            height: 100px; /* Fixed height for image area */
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        /* Placeholder for missing NFT images */
+        .nft-placeholder-svg {
+            width: 100%;
+            height: 100px;
+            background-color: #282828;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nft-placeholder-svg svg {
+            fill: #A0A0A0; /* Gray for placeholder icon */
+            width: 50%;
+            height: 50%;
+        }
+
+        .nft-details {
+            width: 100%;
+            font-size: 12px;
+            color: #E0E0E0;
+        }
+        .nft-details strong {
+            display: block; /* Ensure name is on its own line */
+            font-size: 13px;
+            font-weight: 600;
+            word-break: break-word;
+            margin-bottom: 2px;
+        }
+        .nft-details span {
+            color: #A0A0A0;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: auto; /* Push footer to bottom */
+            padding: 15px 0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header-section">
+            <div class="balance" id="total-balance">$0.00</div>
+
+            <div class="address-group">
+                <input type="text" id="wallet-address" class="address-input" placeholder="Tempel alamat dompet..." />
+                <button class="copy-btn" onclick="copyAddress()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <button class="track-button" onclick="trackWallet()">Lacak</button>
+        </div>
+
+        <div class="tabs-section">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('tokens')">Token</div>
+                <div class="tab" onclick="showTab('nfts')">NFT</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="result" id="result-text">Silakan masukkan alamat dompet untuk melacak saldo.</div>
+            <div class="token-list" id="token-list"></div>
+            <div class="nft-grid" id="nft-grid" style="display: none;"></div>
+        </div>
+
+    </div> <div class="footer">@NexaPortofolio_bot</div>
+
+    <script>
+        let currentAddress = ""; // Store the currently tracked address
+
+        // Fungsi untuk menampilkan pesan status atau error ke pengguna
+        function displayStatus(message, isError = false) {
+            const resultTextElement = document.getElementById("result-text");
+            resultTextElement.innerText = message;
+            resultTextElement.style.color = isError ? '#ff6b6b' : '#999'; // Merah untuk error, abu-abu untuk status normal
+        }
+
+        /**
+         * Memformat angka (bisa dari BigInt string atau Number) ke string yang mudah dibaca.
+         * Menggunakan decimals untuk pembagian jika input adalah raw big integer string.
+         * Menerapkan pemisah ribuan dan membatasi/mengatur desimal.
+         * Juga menangani notasi singkat (K, M, B, T) untuk angka sangat besar.
+         *
+         * @param {string|number} rawValue Angka mentah (bisa string BigInt atau float JS).
+         * @param {number} tokenDecimals Desimal kontrak token (0-30).
+         * @param {number} minDisplayDecimals Jumlah desimal minimum untuk ditampilkan.
+         * @param {number} maxDisplayDecimals Jumlah desimal maksimum untuk ditampilkan.
+         * @param {string} currency Simbol mata uang (misal: '$', 'Rp').
+         * @param {boolean} shorten Jika true, gunakan notasi singkat (K, M, B, T) untuk angka besar.
+         * @returns {string} Angka yang sudah diformat.
+         */
+        function formatNumberAccurate(rawValue, tokenDecimals = 0, minDisplayDecimals = 2, maxDisplayDecimals = 2, currency = '', shorten = false) {
+            let valueAsFloat;
+            let actualDecimals = Math.max(0, Math.min(30, parseInt(tokenDecimals, 10) || 0)); // Validasi decimals
+
+            // Coba parsing sebagai BigInt jika string angka sangat besar
+            // Heuristic: jika string angka dan panjangnya > 15 (di atas batas presisi Number.MAX_SAFE_INTEGER)
+            if (typeof rawValue === 'string' && rawValue.match(/^\d+$/) && rawValue.length > 15) {
+                try {
+                    const bigIntRaw = BigInt(rawValue);
+                    const divisor = 10n ** BigInt(actualDecimals);
+
+                    // Konversi BigInt ke float dengan mempertahankan presisi sebanyak mungkin
+                    // Ini dilakukan dengan membagi integer dan bagian desimal, lalu menggabungkan
+                    let integerPart = bigIntRaw / divisor;
+                    let fractionalPart = bigIntRaw % divisor;
+                    let fractionalString = fractionalPart.toString().padStart(actualDecimals, '0');
+
+                    // Ambil sejumlah desimal yang relevan atau sesuai maxDisplayDecimals
+                    // Trim trailing zeros after maxDisplayDecimals
+                    let formattedFractional = fractionalString.substring(0, Math.min(fractionalString.length, maxDisplayDecimals + 5)); // Ambil sedikit lebih banyak untuk akurasi sementara
+                    formattedFractional = formattedFractional.replace(/0+$/, ''); // Hapus nol di belakang
+
+                    valueAsFloat = parseFloat(integerPart.toString() + (formattedFractional ? '.' + formattedFractional : ''));
+
+                } catch (e) {
+                    console.warn("Kesalahan BigInt, fallback ke parseFloat:", e);
+                    valueAsFloat = parseFloat(rawValue); // Fallback ke float jika BigInt gagal
+                }
+            } else {
+                valueAsFloat = parseFloat(rawValue);
+            }
+
+            if (isNaN(valueAsFloat)) {
+                valueAsFloat = 0;
+            }
+
+            // Handle shortening for very large numbers (only if valueAsFloat is significant)
+            if (shorten && Math.abs(valueAsFloat) >= 1000000) { // Only shorten if >= 1 million, common threshold for K/M/B
+                const absValue = Math.abs(valueAsFloat);
+                if (absValue >= 1e12) { // Trillions
+                    return `${currency}${(valueAsFloat / 1e12).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}T`;
+                } else if (absValue >= 1e9) { // Billions
+                    return `${currency}${(valueAsFloat / 1e9).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}B`;
+                } else if (absValue >= 1e6) { // Millions
+                    return `${currency}${(valueAsFloat / 1e6).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}M`;
+                }
+            }
+
+            let options = {
+                minimumFractionDigits: minDisplayDecimals,
+                maximumFractionDigits: maxDisplayDecimals,
+                useGrouping: true // Enable thousand separators
+            };
+
+            // Enhanced logic for very small numbers (e.g., 0.0000001) to show more decimals if needed
+            // Only apply if the value is positive and smaller than what minDisplayDecimals would show
+            if (valueAsFloat > 0 && valueAsFloat < Math.pow(10, -minDisplayDecimals)) {
+                // Count significant digits after decimal point for small numbers
+                const stringified = valueAsFloat.toPrecision(maxDisplayDecimals + 2); // Get more precision temporarily
+                const match = stringified.match(/\.(0*)(\d+)/);
+                if (match) {
+                    // Number of zeros after decimal + number of significant digits
+                    options.minimumFractionDigits = Math.min(maxDisplayDecimals, match[1].length + match[2].length);
+                    // Ensure it doesn't exceed maxDisplayDecimals
+                    options.maximumFractionDigits = options.minimumFractionDigits;
+                } else {
+                     // Fallback to showing maximum allowed decimals for very small non-zero numbers
+                    options.minimumFractionDigits = maxDisplayDecimals;
+                }
+            }
+
+
+            return `${currency}${valueAsFloat.toLocaleString(undefined, options)}`;
+        }
+
+        /**
+         * Copies the wallet address from the input field to the clipboard.
+         */
+        function copyAddress() {
+            const addressInput = document.getElementById("wallet-address");
+            addressInput.select(); // Select the text in the input field
+            addressInput.setSelectionRange(0, 99999); // For mobile devices
+            document.execCommand("copy"); // Copy the selected text
+            displayStatus("Alamat disalin!", false); // Provide feedback to the user
+            // Optional: briefly change icon or show a tooltip
+        }
+
+        async function trackWallet() {
+            const addressInput = document.getElementById("wallet-address");
+            const address = addressInput.value.trim();
+
+            if (!address) {
+                displayStatus("⚠️ Mohon masukkan alamat dompet!", true);
+                document.getElementById("total-balance").innerText = "$0.00";
+                document.getElementById("token-list").innerHTML = "";
+                document.getElementById("result-text").innerText = "Silakan masukkan alamat dompet untuk melacak saldo."; // Reset result text
+                return;
+            }
+
+            currentAddress = address;
+            addressInput.value = address; // Ensure the input displays the validated address
+
+            addressInput.readOnly = true; // Make input read-only when tracking starts
+
+            displayStatus("🔍 Mengambil data token...");
+            document.getElementById("nft-grid").style.display = "none";
+            document.getElementById("token-list").innerHTML = "";
+            document.getElementById("token-list").style.display = "flex"; // Use flex for gap
+            document.getElementById("total-balance").innerText = "Memuat...";
+
+            try {
+                console.log(`[FRONTEND] Meminta /api/balance untuk alamat: ${address}`);
+                const res = await fetch(`/api/balance?address=${address}`);
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    const errorMessage = errorData.error || `Kesalahan HTTP: ${res.status}`;
+                    throw new Error(`Gagal mengambil data token dari server: ${errorMessage}`);
+                }
+                const data = await res.json();
+                console.log('✅ [FRONTEND] Respons API BALANCE (dari server Anda):', data);
+
+                // --- BAGIAN KRITIS: SESUAIKAN JALUR DATA TOKEN ---
+                // Asumsi struktur data dari Dune API Collectibles API (sim.dune.com):
+                // Memberikan beberapa fallback untuk properti umum jika API Anda menggunakan nama yang berbeda
+                const tokens = (data.data && data.data.balances) ? data.data.balances : data.balances || [];
+
+                if (tokens.length === 0) {
+                    displayStatus("Tidak ada token ditemukan untuk alamat ini.", false);
+                    document.getElementById("total-balance").innerText = "$0.00";
+                    return;
+                }
+
+                let usdTotal = 0;
+                const tokensHtml = tokens.map(token => {
+                    // --- BAGIAN KRITIS: SESUAIKAN NAMA PROPERTI TOKEN ---
+                    // Contoh properti yang mungkin dari API berbeda (Dune, Moralis, Alchemy, dll.):
+                    const name = token.name || token.token_name || token.symbol || 'Token Tidak Dikenal';
+                    const symbol = token.symbol || token.token_symbol || '???';
+                    // Cari raw_balance (BigInt string) atau balance (float), prioritaskan BigInt string
+                    const rawBalance = token.raw_balance || token.balance_raw || token.balance || '0';
+                    // Cari decimals, default ke 18 jika tidak ada (ini penting!)
+                    const tokenDecimals = token.decimals !== undefined ? token.decimals : token.token_decimals !== undefined ? token.token_decimals : 18;
+
+                    // Cari harga USD, prioritaskan price_usd
+                    const price = parseFloat(token.price_usd || token.usdPrice || token.price || '0');
+                    // Cari nilai USD total untuk token ini, prioritaskan usd_value
+                    const value = parseFloat(token.usd_value || token.value_usd || token.total_usd_value || (parseFloat(rawBalance) / (10 ** tokenDecimals)) * price || '0');
+
+                    // --- DEBUGGING LOGS UNTUK SETIAP TOKEN ---
+                    console.log(`--- DEBUG TOKEN: ${symbol} ---`);
+                    console.log(`  - Raw Balance from API: "${rawBalance}" (Type: ${typeof rawBalance})`);
+                    console.log(`  - Decimals from API: ${tokenDecimals} (Type: ${typeof tokenDecimals})`);
+                    console.log(`  - Price from API: ${price} (Type: ${typeof price})`);
+                    console.log(`  - USD Value from API: ${value} (Type: ${typeof value})`);
+                    console.log(`------------------------------`);
+
+                    // Untuk JUMLAH token, gunakan formatNumberAccurate dengan raw_balance dan decimals
+                    const formattedAmount = formatNumberAccurate(rawBalance, tokenDecimals, 0, 8); // Min 0, Max 8 desimal untuk jumlah token
+                    const formattedPrice = formatNumberAccurate(price, 0, 2, 8, '$'); // Min 2, Max 8 desimal untuk harga
+                    const formattedValue = formatNumberAccurate(value, 0, 2, 2, '$', true); // Min 2, Max 2 desimal untuk nilai, bisa disingkat (K,M,B)
+
+                    // Akumulasi total saldo USD
+                    usdTotal += value;
+
+                    // Placeholder for 24h change, as Dune API does not provide it directly
+                    // Ganti dengan data aktual jika tersedia dari API Anda
+                    const change24h = (Math.random() * 10 - 5).toFixed(2); // Random for demo, replace with actual data
+                    const changeClass = parseFloat(change24h) >= 0 ? 'positive' : 'negative';
+                    const formattedChange = `${parseFloat(change24h) >= 0 ? '+' : ''}${change24h}%`;
+
+                    // Basic icon based on first letter or generic SVG
+                    const tokenIconContent = `
+                        <div class="token-icon">
+                            ${symbol ? symbol.charAt(0).toUpperCase() : '?' }
+                        </div>`;
+                        // If you have image URLs, use:
+                        // ${token.logo_url ? `<img src="${token.logo_url}" alt="${symbol} icon" onerror="this.onerror=null;this.src='https://placehold.co/40x40/333/00FFD1?text=?';" />` : `<div class="token-icon">${symbol ? symbol.charAt(0).toUpperCase() : '?' }</div>`}
+
+
+                    return `
+                        <div class="token-item">
+                            ${tokenIconContent}
+                            <div class="token-info">
+                                <div class="name-symbol">${name} <span>(${symbol})</span></div>
+                                <div class="price-change">
+                                    <span class="price">${formattedPrice}</span>
+                                    <span class="change ${changeClass}">${formattedChange}</span>
+                                </div>
+                            </div>
+                            <div class="token-amounts">
+                                <div class="amount">${formattedAmount}</div>
+                                <div class="total-value">${formattedValue}</div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                // Update total balance in header
+                document.getElementById("total-balance").innerText = formatNumberAccurate(usdTotal, 0, 2, 2, '$', true); // Total saldo: 2 decimals, bisa disingkat
+                document.getElementById("token-list").innerHTML = tokensHtml;
+                displayStatus(`Ditemukan ${tokens.length} token.`);
+
+            } catch (err) {
+                console.error("[FRONTEND] Kesalahan saat mengambil data token:", err);
+                displayStatus(`⚠️ Gagal mengambil data token: ${err.message || err}`, true);
+                document.getElementById("total-balance").innerText = "$0.00";
+                document.getElementById("token-list").innerHTML = "";
+            } finally {
+                addressInput.readOnly = false; // Membuat input dapat diedit kembali
+            }
+        }
+
+
+        async function showTab(tab) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelector(`.tab:nth-child(${tab === "tokens" ? 1 : 2})`).classList.add("active");
+
+            if (tab === "tokens") {
+                document.getElementById("nft-grid").style.display = "none";
+                document.getElementById("token-list").style.display = "flex";
+                displayStatus("Memuat data token...");
+                trackWallet(); // Mengambil ulang token jika pengguna kembali ke tab ini
+            } else {
+                if (!currentAddress) {
+                    displayStatus("Mohon lacak alamat dompet terlebih dahulu untuk melihat NFT.", true);
+                    document.getElementById("nft-grid").style.display = "none";
+                    document.getElementById("token-list").style.display = "none";
+                    document.getElementById("total-balance").innerText = "$0.00";
+                    return;
+                }
+
+                displayStatus("🔍 Mengambil NFT...");
+                const nftGrid = document.getElementById("nft-grid");
+                nftGrid.style.display = "grid"; // Menggunakan grid untuk NFT
+                nftGrid.innerHTML = "";
+                document.getElementById("token-list").style.display = "none";
+
+                try {
+                    console.log(`[FRONTEND] Meminta /api/nfts untuk alamat: ${currentAddress}`);
+                    const res = await fetch(`/api/nfts?address=${currentAddress}`);
+
+                    if (!res.ok) {
+                        const errorData = await res.json();
+                        const errorMessage = errorData.error || `Kesalahan HTTP: ${res.status}`;
+                        throw new Error(`Gagal mengambil data NFT dari server: ${errorMessage}`);
+                    }
+                    const data = await res.json();
+                    console.log('✅ [FRONTEND] Respons API NFT (dari server Anda):', data);
+
+                    // --- BAGIAN KRITIS: SESUAIKAN JALUR DATA NFT ---
+                    const nfts = data.data && data.data.collectibles ? data.data.collectibles : data.collectibles || [];
+
+                    if (nfts.length === 0) {
+                        displayStatus("Tidak ada NFT ditemukan untuk alamat ini.", false);
+                        nftGrid.style.display = "none";
+                        return;
+                    }
+
+                    const html = nfts.map(nft => {
+                        // --- BAGIAN KRITIS: SESUAIKAN NAMA PROPERTI NFT ---
+                        const imageUrl = nft.image_url || nft.image_uri || '';
+                        const nftName = nft.name || nft.token_name || nft.contract_name || 'NFT Tidak Dikenal';
+                        const tokenId = nft.token_id || nft.token_id_hex || '???';
+
+                        const placeholderSvg = `
+                            <div class="nft-placeholder-svg">
+                                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <circle cx="8" cy="10" r="1.5" fill="currentColor"/>
+                                    <path d="M14 10s-3 4-6 4-6-4-6-4" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M17 14s3-4 6-4 6 4 6 4" fill="none" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>`;
+
+                        return `
+                            <div class="nft-item">
+                                ${imageUrl ? `<img src="${imageUrl}" alt="${nftName}" onerror="this.onerror=null;this.replaceWith(document.createRange().createContextualFragment('${placeholderSvg}').children[0]);" />` : placeholderSvg}
+                                <div class="nft-details">
+                                    <strong>${nftName}</strong>
+                                    <span>#${tokenId}</span>
+                                </div>
+                            </div>`;
+                    }).join('');
+
+                    nftGrid.innerHTML = html;
+                    displayStatus(`Ditemukan ${nfts.length} NFT.`);
+                } catch (err) {
+                    console.error("[FRONTEND] Kesalahan saat mengambil data NFT:", err);
+                    displayStatus(`⚠️ Gagal mengambil data NFT: ${err.message || err}`, true);
+                    nftGrid.style.display = "none";
+                }
+            }
+        }
+
+        // Memastikan input dapat diedit saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("wallet-address").readOnly = false;
+            // Opsional: pra-isi untuk pengujian, hapus di produksi
+            // document.getElementById("wallet-address").value = "0xFc180564Bba25936D2ce16489b91786e2418e24f"; // Ganti dengan alamat uji Anda
+            // trackWallet(); // Hapus komentar untuk melacak otomatis saat dimuat
+        });
+
+    </script>
+</body>
+</html>
