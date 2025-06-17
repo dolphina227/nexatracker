@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "concurrently \"vercel dev\" \"node bot.js\""
   },
   "keywords": [],
   "author": "",
@@ -16,5 +15,9 @@
     "node-fetch": "^2.7.0",
     "node-telegram-bot-api": "^0.66.0"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vercel": "^43.2.0"
+  }
 }

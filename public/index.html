@@ -360,7 +360,7 @@
             <div class="balance" id="total-balance">$0.00</div>
 
             <div class="address-group">
-                <input type="text" id="wallet-address" class="address-input" placeholder="Tempel alamat dompet..." />
+                <input type="text" id="wallet-address" class="address-input" placeholder="Paste the wallet address..." />
                 <button class="copy-btn" onclick="copyAddress()">
                     <svg viewBox="0 0 24 24">
                         <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
@@ -368,7 +368,7 @@
                 </button>
             </div>
 
-            <button class="track-button" onclick="trackWallet()">Lacak</button>
+            <button class="track-button" onclick="trackWallet()">Track</button>
         </div>
 
         <div class="tabs-section">
@@ -379,7 +379,7 @@
         </div>
 
         <div class="content-area">
-            <div class="result" id="result-text">Silakan masukkan alamat dompet untuk melacak saldo.</div>
+            <div class="result" id="result-text">Please enter wallet address to track balance.</div>
             <div class="token-list" id="token-list"></div>
             <div class="nft-grid" id="nft-grid" style="display: none;"></div>
         </div>
@@ -493,7 +493,7 @@
             addressInput.select(); // Select the text in the input field
             addressInput.setSelectionRange(0, 99999); // For mobile devices
             document.execCommand("copy"); // Copy the selected text
-            displayStatus("Alamat disalin!", false); // Provide feedback to the user
+            displayStatus("Address copied!", false); // Provide feedback to the user
             // Optional: briefly change icon or show a tooltip
         }
 
@@ -502,10 +502,10 @@
             const address = addressInput.value.trim();
 
             if (!address) {
-                displayStatus("⚠️ Mohon masukkan alamat dompet!", true);
+                displayStatus("⚠️ Please enter wallet address!", true);
                 document.getElementById("total-balance").innerText = "$0.00";
                 document.getElementById("token-list").innerHTML = "";
-                document.getElementById("result-text").innerText = "Silakan masukkan alamat dompet untuk melacak saldo."; // Reset result text
+                document.getElementById("result-text").innerText = "Please enter wallet address to track balance."; // Reset result text
                 return;
             }
 
@@ -514,11 +514,11 @@
 
             addressInput.readOnly = true; // Make input read-only when tracking starts
 
-            displayStatus("🔍 Mengambil data token...");
+            displayStatus("🔍 Retrieving token data...");
             document.getElementById("nft-grid").style.display = "none";
             document.getElementById("token-list").innerHTML = "";
             document.getElementById("token-list").style.display = "flex"; // Use flex for gap
-            document.getElementById("total-balance").innerText = "Memuat...";
+            document.getElementById("total-balance").innerText = "Load...";
 
             try {
                 console.log(`[FRONTEND] Meminta /api/balance untuk alamat: ${address}`);
@@ -527,7 +527,7 @@
                 if (!res.ok) {
                     const errorData = await res.json();
                     const errorMessage = errorData.error || `Kesalahan HTTP: ${res.status}`;
-                    throw new Error(`Gagal mengambil data token dari server: ${errorMessage}`);
+                    throw new Error(`Failed to retrieve token data from server: ${errorMessage}`);
                 }
                 const data = await res.json();
                 console.log('✅ [FRONTEND] Respons API BALANCE (dari server Anda):', data);
@@ -538,7 +538,7 @@
                 const tokens = (data.data && data.data.balances) ? data.data.balances : data.balances || [];
 
                 if (tokens.length === 0) {
-                    displayStatus("Tidak ada token ditemukan untuk alamat ini.", false);
+                    displayStatus("No tokens found for this address.", false);
                     document.getElementById("total-balance").innerText = "$0.00";
                     return;
                 }
@@ -610,11 +610,11 @@
                 // Update total balance in header
                 document.getElementById("total-balance").innerText = formatNumberAccurate(usdTotal, 0, 2, 2, '$', true); // Total saldo: 2 decimals, bisa disingkat
                 document.getElementById("token-list").innerHTML = tokensHtml;
-                displayStatus(`Ditemukan ${tokens.length} token.`);
+                displayStatus(`found ${tokens.length} token.`);
 
             } catch (err) {
-                console.error("[FRONTEND] Kesalahan saat mengambil data token:", err);
-                displayStatus(`⚠️ Gagal mengambil data token: ${err.message || err}`, true);
+                console.error("[FRONTEND] Error while retrieving token data:", err);
+                displayStatus(`⚠️ Failed to retrieve token data: ${err.message || err}`, true);
                 document.getElementById("total-balance").innerText = "$0.00";
                 document.getElementById("token-list").innerHTML = "";
             } finally {
@@ -634,14 +634,14 @@
                 trackWallet(); // Mengambil ulang token jika pengguna kembali ke tab ini
             } else {
                 if (!currentAddress) {
-                    displayStatus("Mohon lacak alamat dompet terlebih dahulu untuk melihat NFT.", true);
+                    displayStatus("Please track the wallet address first to view the NFT.", true);
                     document.getElementById("nft-grid").style.display = "none";
                     document.getElementById("token-list").style.display = "none";
                     document.getElementById("total-balance").innerText = "$0.00";
                     return;
                 }
 
-                displayStatus("🔍 Mengambil NFT...");
+                displayStatus("🔍 Take NFT...");
                 const nftGrid = document.getElementById("nft-grid");
                 nftGrid.style.display = "grid"; // Menggunakan grid untuk NFT
                 nftGrid.innerHTML = "";
@@ -663,7 +663,7 @@
                     const nfts = data.data && data.data.collectibles ? data.data.collectibles : data.collectibles || [];
 
                     if (nfts.length === 0) {
-                        displayStatus("Tidak ada NFT ditemukan untuk alamat ini.", false);
+                        displayStatus("No NFTs found for this address.", false);
                         nftGrid.style.display = "none";
                         return;
                     }
@@ -695,10 +695,10 @@
                     }).join('');
 
                     nftGrid.innerHTML = html;
-                    displayStatus(`Ditemukan ${nfts.length} NFT.`);
+                    displayStatus(`Found ${nfts.length} NFT.`);
                 } catch (err) {
-                    console.error("[FRONTEND] Kesalahan saat mengambil data NFT:", err);
-                    displayStatus(`⚠️ Gagal mengambil data NFT: ${err.message || err}`, true);
+                    console.error("[FRONTEND] Error while retrieving NFT data:", err);
+                    displayStatus(`⚠️ Failed to fetch NFT data: ${err.message || err}`, true);
                     nftGrid.style.display = "none";
                 }
             }
