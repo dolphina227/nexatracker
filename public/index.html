@@ -386,6 +386,8 @@
 
     </div> <div class="footer">@NexaPortofolio_bot</div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bignumber.js/9.0.2/bignumber.min.js"></script>
+
     <script>
         let currentAddress = ""; // Store the currently tracked address
 
@@ -411,79 +413,61 @@
          * @returns {string} Angka yang sudah diformat.
          */
         function formatNumberAccurate(rawValue, tokenDecimals = 0, minDisplayDecimals = 2, maxDisplayDecimals = 2, currency = '', shorten = false) {
-            let valueAsFloat;
-            let actualDecimals = Math.max(0, Math.min(30, parseInt(tokenDecimals, 10) || 0)); // Validasi decimals
-
-            // Coba parsing sebagai BigInt jika string angka sangat besar
-            // Heuristic: jika string angka dan panjangnya > 15 (di atas batas presisi Number.MAX_SAFE_INTEGER)
-            if (typeof rawValue === 'string' && rawValue.match(/^\d+$/) && rawValue.length > 15) {
-                try {
-                    const bigIntRaw = BigInt(rawValue);
-                    const divisor = 10n ** BigInt(actualDecimals);
-
-                    // Konversi BigInt ke float dengan mempertahankan presisi sebanyak mungkin
-                    // Ini dilakukan dengan membagi integer dan bagian desimal, lalu menggabungkan
-                    let integerPart = bigIntRaw / divisor;
-                    let fractionalPart = bigIntRaw % divisor;
-                    let fractionalString = fractionalPart.toString().padStart(actualDecimals, '0');
-
-                    // Ambil sejumlah desimal yang relevan atau sesuai maxDisplayDecimals
-                    // Trim trailing zeros after maxDisplayDecimals
-                    let formattedFractional = fractionalString.substring(0, Math.min(fractionalString.length, maxDisplayDecimals + 5)); // Ambil sedikit lebih banyak untuk akurasi sementara
-                    formattedFractional = formattedFractional.replace(/0+$/, ''); // Hapus nol di belakang
-
-                    valueAsFloat = parseFloat(integerPart.toString() + (formattedFractional ? '.' + formattedFractional : ''));
-
-                } catch (e) {
-                    console.warn("Kesalahan BigInt, fallback ke parseFloat:", e);
-                    valueAsFloat = parseFloat(rawValue); // Fallback ke float jika BigInt gagal
+            let valueBN;
+            try {
+                // Periksa apakah rawValue adalah string yang terlihat seperti BigInt
+                // dan apakah tokenDecimals valid untuk pembagian
+                if (typeof rawValue === 'string' && rawValue.match(/^\d+$/) && tokenDecimals !== undefined && tokenDecimals !== null) {
+                    // Ini adalah nilai 'wei' atau raw amount, perlu dibagi dengan desimal
+                    valueBN = new BigNumber(rawValue).dividedBy(new BigNumber(10).pow(tokenDecimals));
+                } else {
+                    // Ini sudah nilai float atau angka biasa
+                    valueBN = new BigNumber(rawValue);
                 }
-            } else {
-                valueAsFloat = parseFloat(rawValue);
+            } catch (e) {
+                console.error("Error creating BigNumber from rawValue:", rawValue, "Decimals:", tokenDecimals, "Error:", e);
+                return `${currency}NaN`; // Atau pesan error lainnya
             }
 
-            if (isNaN(valueAsFloat)) {
-                valueAsFloat = 0;
+            if (valueBN.isNaN()) {
+                return `${currency}0.00`; // Default ke 0 jika tidak valid
             }
 
-            // Handle shortening for very large numbers (only if valueAsFloat is significant)
-            if (shorten && Math.abs(valueAsFloat) >= 1000000) { // Only shorten if >= 1 million, common threshold for K/M/B
-                const absValue = Math.abs(valueAsFloat);
-                if (absValue >= 1e12) { // Trillions
-                    return `${currency}${(valueAsFloat / 1e12).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}T`;
-                } else if (absValue >= 1e9) { // Billions
-                    return `${currency}${(valueAsFloat / 1e9).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}B`;
-                } else if (absValue >= 1e6) { // Millions
-                    return `${currency}${(valueAsFloat / 1e6).toLocaleString(undefined, { minimumFractionDigits: minDisplayDecimals, maximumFractionDigits: maxDisplayDecimals })}M`;
+            // Handle shortening for very large numbers
+            if (shorten && valueBN.abs().gte(1e6)) {
+                if (valueBN.abs().gte(1e12)) { // Trillions
+                    return `${currency}${valueBN.dividedBy(1e12).dp(maxDisplayDecimals, BigNumber.ROUND_DOWN).toFormat() || '0'}T`;
+                } else if (valueBN.abs().gte(1e9)) { // Billions
+                    return `${currency}${valueBN.dividedBy(1e9).dp(maxDisplayDecimals, BigNumber.ROUND_DOWN).toFormat() || '0'}B`;
+                } else if (valueBN.abs().gte(1e6)) { // Millions
+                    return `${currency}${valueBN.dividedBy(1e6).dp(maxDisplayDecimals, BigNumber.ROUND_DOWN).toFormat() || '0'}M`;
                 }
             }
 
-            let options = {
-                minimumFractionDigits: minDisplayDecimals,
-                maximumFractionDigits: maxDisplayDecimals,
-                useGrouping: true // Enable thousand separators
-            };
-
-            // Enhanced logic for very small numbers (e.g., 0.0000001) to show more decimals if needed
-            // Only apply if the value is positive and smaller than what minDisplayDecimals would show
-            if (valueAsFloat > 0 && valueAsFloat < Math.pow(10, -minDisplayDecimals)) {
-                // Count significant digits after decimal point for small numbers
-                const stringified = valueAsFloat.toPrecision(maxDisplayDecimals + 2); // Get more precision temporarily
+            // Set the number of decimals to display
+            let numDecimalsToDisplay = maxDisplayDecimals;
+            // For very small numbers, show more decimals if needed
+            if (valueBN.gt(0) && valueBN.lt(new BigNumber(10).pow(-minDisplayDecimals))) {
+                const stringified = valueBN.toPrecision(maxDisplayDecimals + 5); // Get more precision temporarily
                 const match = stringified.match(/\.(0*)(\d+)/);
                 if (match) {
-                    // Number of zeros after decimal + number of significant digits
-                    options.minimumFractionDigits = Math.min(maxDisplayDecimals, match[1].length + match[2].length);
-                    // Ensure it doesn't exceed maxDisplayDecimals
-                    options.maximumFractionDigits = options.minimumFractionDigits;
+                    numDecimalsToDisplay = Math.min(maxDisplayDecimals + 5, match[1].length + match[2].length);
+                    numDecimalsToDisplay = Math.max(minDisplayDecimals, numDecimalsToDisplay);
                 } else {
-                     // Fallback to showing maximum allowed decimals for very small non-zero numbers
-                    options.minimumFractionDigits = maxDisplayDecimals;
+                    numDecimalsToDisplay = maxDisplayDecimals; // Fallback for edge cases
                 }
+            } else {
+                // For numbers >= 1, ensure at least minDisplayDecimals are shown up to max
+                numDecimalsToDisplay = Math.max(minDisplayDecimals, Math.min(maxDisplayDecimals, valueBN.decimalPlaces()));
             }
 
+            // Ensure numDecimalsToDisplay does not exceed maxDisplayDecimals
+            numDecimalsToDisplay = Math.min(numDecimalsToDisplay, maxDisplayDecimals);
 
-            return `${currency}${valueAsFloat.toLocaleString(undefined, options)}`;
+
+            return `${currency}${valueBN.toFormat(numDecimalsToDisplay, BigNumber.ROUND_DOWN)}`;
         }
+
 
         /**
          * Copies the wallet address from the input field to the clipboard.
@@ -550,7 +534,8 @@
                     const name = token.name || token.token_name || token.symbol || 'Token Tidak Dikenal';
                     const symbol = token.symbol || token.token_symbol || '???';
                     // Cari raw_balance (BigInt string) atau balance (float), prioritaskan BigInt string
-                    const rawBalance = token.raw_balance || token.balance_raw || token.balance || '0';
+                    // Menggunakan `amount` dari data konsol Anda
+                    const rawBalance = token.amount || token.raw_balance || token.balance_raw || token.balance || '0'; 
                     // Cari decimals, default ke 18 jika tidak ada (ini penting!)
                     const tokenDecimals = token.decimals !== undefined ? token.decimals : token.token_decimals !== undefined ? token.token_decimals : 18;
 
@@ -561,14 +546,15 @@
 
                     // --- DEBUGGING LOGS UNTUK SETIAP TOKEN ---
                     console.log(`--- DEBUG TOKEN: ${symbol} ---`);
-                    console.log(`  - Raw Balance from API: "${rawBalance}" (Type: ${typeof rawBalance})`);
-                    console.log(`  - Decimals from API: ${tokenDecimals} (Type: ${typeof tokenDecimals})`);
-                    console.log(`  - Price from API: ${price} (Type: ${typeof price})`);
-                    console.log(`  - USD Value from API: ${value} (Type: ${typeof value})`);
+                    console.log(`   - Raw Balance from API: "${rawBalance}" (Type: ${typeof rawBalance})`);
+                    console.log(`   - Decimals from API: ${tokenDecimals} (Type: ${typeof tokenDecimals})`);
+                    console.log(`   - Price from API: ${price} (Type: ${typeof price})`);
+                    console.log(`   - USD Value from API: ${value} (Type: ${typeof value})`);
                     console.log(`------------------------------`);
 
-                    // Untuk JUMLAH token, gunakan formatNumberAccurate dengan raw_balance dan decimals
-                    const formattedAmount = formatNumberAccurate(rawBalance, tokenDecimals, 0, 8); // Min 0, Max 8 desimal untuk jumlah token
+                    // Untuk JUMLAH token, gunakan formatNumberAccurate dengan rawBalance dan tokenDecimals
+                    // Min 0 desimal agar tidak menampilkan ".00" jika integer
+                    const formattedAmount = formatNumberAccurate(rawBalance, tokenDecimals, 0, 8); 
                     const formattedPrice = formatNumberAccurate(price, 0, 2, 8, '$'); // Min 2, Max 8 desimal untuk harga
                     const formattedValue = formatNumberAccurate(value, 0, 2, 2, '$', true); // Min 2, Max 2 desimal untuk nilai, bisa disingkat (K,M,B)
 
