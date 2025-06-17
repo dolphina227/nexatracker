@@ -22,7 +22,7 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   
-  bot.sendMessage(chatId, "👋 Hai! Klik tombol di bawah untuk membuka Mini App kamu:", {
+  bot.sendMessage(chatId, "👋 Hi! Click the button below to open your Mini App:", {
     reply_markup: {
       inline_keyboard: [
         [
