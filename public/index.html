@@ -186,6 +186,8 @@
             display: flex;
             flex-direction: column;
             gap: 12px; /* Spacing between token cards */
+            /* Pastikan tidak ada overflow horizontal dari list itu sendiri */
+            overflow-x: hidden;
         }
 
         .token-item {
@@ -198,6 +200,9 @@
             gap: 15px; /* Gap between icon and text content */
             cursor: pointer; /* Hint for clickability */
             transition: background-color 0.2s ease;
+            /* Tambahan untuk mencegah overflow horizontal pada item itu sendiri */
+            overflow: hidden; /* Sembunyikan konten yang meluap dari token-item */
+            /* word-break: break-word; -- ini akan diatur di dalam sub-elemen yang relevan */
         }
         .token-item:hover {
             background-color: #282828; /* Slightly darker on hover */
@@ -228,6 +233,9 @@
             display: flex;
             flex-direction: column;
             text-align: left;
+            /* Tambahan untuk mencegah overflow dalam info token */
+            min-width: 0; /* Penting untuk flex items agar bisa menyusut */
+            overflow: hidden; /* Sembunyikan jika nama atau simbol terlalu panjang */
         }
 
         .token-info .name-symbol {
@@ -235,6 +243,8 @@
             font-weight: 600;
             color: #FFFFFF; /* White for token name */
             margin-bottom: 2px;
+            /* Memastikan nama dan simbol membungkus jika terlalu panjang */
+            word-break: break-word;
         }
         .token-info .name-symbol span {
             font-weight: 400;
@@ -245,16 +255,30 @@
         .token-info .price-change {
             font-size: 14px;
             color: #A0A0A0;
-            display: flex;
+            display: flex; /* Menggunakan flex untuk .price dan .change */
             align-items: center;
+            /* PROPERTI BARU UNTUK MENCEGAH PEMOTONGAN/WRAPPING YANG TIDAK DIINGINKAN */
+            white-space: nowrap; /* Coba pertahankan semua pada satu baris */
+            overflow: hidden; /* Sembunyikan jika masih meluap */
+            text-overflow: ellipsis; /* Tambahkan elipsis (...) jika terpotong */
+            min-width: 0; /* Penting untuk flex item agar dapat menyusut lebih dari kontennya */
+            flex-wrap: nowrap; /* Pastikan flex item di dalamnya tidak membungkus */
         }
         .token-info .price-change .price {
             font-weight: 500;
             margin-right: 8px;
+            /* Tambahan: Jangan biarkan harga menyusut terlalu banyak */
+            flex-shrink: 0;
+            /* Memastikan harga itu sendiri membungkus jika sangat panjang */
+            word-break: break-word;
         }
         .token-info .price-change .change {
             font-weight: 600;
             /* Color will be set by JS based on value */
+            /* Tambahan: Jangan biarkan perubahan persentase menyusut terlalu banyak */
+            flex-shrink: 0;
+            /* Memastikan persentase itu sendiri membungkus jika sangat panjang */
+            word-break: break-word;
         }
         .change.positive { color: #28a745; } /* Green for positive change */
         .change.negative { color: #dc3545; } /* Red for negative change */
@@ -266,6 +290,9 @@
             flex-direction: column;
             align-items: flex-end;
             flex-shrink: 0; /* Prevent shrinking */
+            /* Tambahan untuk memastikan angka jumlah token membungkus */
+            min-width: 0; /* Penting untuk flex items agar bisa menyusut */
+            word-break: break-all; /* Memaksa angka panjang untuk membungkus */
         }
         .token-amounts .amount {
             font-size: 15px;
